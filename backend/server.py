@@ -3,10 +3,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-import httpx
 import os
 import json
-import re
+import asyncio
+
+# Use emergent integrations library for LLM calls
+from emergentintegrations.llm.chat import LlmChat, UserMessage, ChatError
 
 app = FastAPI(title="SiteRadar API", version="2.0.0")
 
@@ -21,7 +23,6 @@ app.add_middleware(
 
 # Environment
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-4A1Cd627cB2866cF4C")
-INTEGRATION_URL = os.environ.get("INTEGRATION_PROXY_URL", "https://integrations.emergentagent.com")
 
 # Pydantic Models
 class Coords(BaseModel):
@@ -51,7 +52,7 @@ class Tour(BaseModel):
     steps: List[TourStep]
     tips: List[str]
 
-class ChatMessage(BaseModel):
+class ChatMessageModel(BaseModel):
     role: str
     content: str
 
@@ -59,7 +60,7 @@ class GenerateTourRequest(BaseModel):
     location: Location
 
 class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
+    messages: List[ChatMessageModel]
     location: Optional[Location] = None
     tour: Optional[Tour] = None
 
@@ -74,29 +75,6 @@ def clean_json_response(text: str) -> str:
     if cleaned.endswith('```'):
         cleaned = cleaned[:-3]
     return cleaned.strip()
-
-async def call_openai(messages: list, max_tokens: int = 2000) -> str:
-    """Call OpenAI via Emergent integration proxy"""
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            f"{INTEGRATION_URL}/v1/chat/completions",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {EMERGENT_KEY}",
-            },
-            json={
-                "model": "gpt-4o-mini",
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": 0.8,
-            },
-        )
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail=f"AI service error: {response.text}")
-        
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
 
 # Routes
 @app.get("/api/health")
@@ -142,17 +120,21 @@ Coordinates: {location.coords.lat}, {location.coords.lng}
 Focus on the human drama and emotional resonance of this place. What conflicts shaped it? What mysteries remain unsolved? What triumphs deserve to be remembered?"""
 
     try:
-        response = await call_openai([
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ], 2500)
+        chat = LlmChat(
+            api_key=EMERGENT_KEY,
+            session_id=f"tour_{location.id}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.8, max_tokens=2500)
         
+        response = await chat.send_message(UserMessage(text=user_prompt))
         cleaned = clean_json_response(response)
         tour_data = json.loads(cleaned)
         
         return tour_data
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse tour data: {str(e)}")
+    except ChatError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -179,12 +161,25 @@ Guidelines:
 - Keep responses concise (2-3 paragraphs max)
 - If asked about nearby places, suggest authentic local experiences"""
 
-    messages = [{"role": "system", "content": system_prompt}]
-    for msg in request.messages:
-        messages.append({"role": msg.role, "content": msg.content})
+    # Build initial messages for context
+    initial_messages = [{"role": "system", "content": system_prompt}]
+    for msg in request.messages[:-1]:  # All but last message
+        initial_messages.append({"role": msg.role, "content": msg.content})
     
     try:
-        response = await call_openai(messages, 500)
+        chat = LlmChat(
+            api_key=EMERGENT_KEY,
+            session_id=f"chat_{id(request)}",
+            system_message=system_prompt,
+            initial_messages=initial_messages
+        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.7, max_tokens=500)
+        
+        # Send the last user message
+        last_message = request.messages[-1]
+        response = await chat.send_message(UserMessage(text=last_message.content))
+        
         return {"response": response}
+    except ChatError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
