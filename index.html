@@ -1,14 +1,20 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NomadGuide | AI Travel Companion</title>
+    <title>SiteRadar | AI Travel Explorer</title>
+    <meta name="description" content="Discover hidden stories of iconic destinations with AI-powered audio tours" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f59e0b'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23f59e0b' stroke-width='2' fill='none'/%3E%3Ccircle cx='12' cy='12' r='6' stroke='%23f59e0b' stroke-width='2' fill='none'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23f59e0b'/%3E%3C/svg%3E" />
+    
+    <!-- Fonts: Playfair Display (Display), Inter (Body), Caveat (Hand) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Lato:wght@400;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -16,36 +22,66 @@
           extend: {
             fontFamily: {
               display: ['Playfair Display', 'serif'],
-              body: ['Lato', 'sans-serif'],
-              hand: ['Indie Flower', 'cursive'],
+              body: ['Inter', 'sans-serif'],
+              hand: ['Caveat', 'cursive'],
             },
             colors: {
-              background: '#FBFBFA',
-              surface: '#FFFFFF',
-              primary: '#1A202C',
-              secondary: '#4A5568',
-              accent: '#3182CE',
-              'accent-hover': '#2B6CB0',
-              muted: '#F7FAFC',
-              passport: '#8B4513',
+              stone: {
+                50: '#FAFAF9',
+                100: '#F5F5F4',
+                200: '#E7E5E4',
+                300: '#D6D3D1',
+                400: '#A8A29E',
+                500: '#78716C',
+                600: '#57534E',
+                700: '#44403C',
+                800: '#292524',
+                900: '#1C1917',
+              },
+              amber: {
+                50: '#FFFBEB',
+                100: '#FEF3C7',
+                200: '#FDE68A',
+                300: '#FCD34D',
+                400: '#FBBF24',
+                500: '#F59E0B',
+                600: '#D97706',
+                700: '#B45309',
+                800: '#92400E',
+                900: '#78350F',
+              },
             },
           },
         },
-        darkMode: 'class',
       }
     </script>
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-background text-primary font-body">
+    
+    <!-- Global Styles -->
+    <style>
+      * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-stone-800">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
