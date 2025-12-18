@@ -1,0 +1,7 @@
+{
+  "name": "AI Travel Companion",
+  "description": "An AI-powered travel companion that provides generated audio tour guides for iconic places, complete with interactive maps and a helpful chat bot. Explore the world with personalized, in-depth historical insights and exciting tidbits.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
