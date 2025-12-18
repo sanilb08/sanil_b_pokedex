@@ -1,2 +1,5 @@
 fastapi==0.115.0
+httpx==0.28.1
+pydantic==2.12.5
+pydantic_core==2.41.5
 uvicorn==0.30.6
