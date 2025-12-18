@@ -1,4 +1,5 @@
-// SiteRadar - Browser TTS Hook (Zero API Cost)
+// SiteRadar - Enhanced TTS Hook with Female Voice
+// Voice: Soft, intellectual, whispering, slightly sensual
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 
@@ -34,19 +35,56 @@ export const useSpeech = (): UseSpeechReturn => {
     const utterance = new SpeechSynthesisUtterance(text);
     utteranceRef.current = utterance;
     
-    // Configure for storytelling voice
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
+    // Configure for soft, intimate female voice
+    utterance.rate = 0.85;     // Slower for intimacy
+    utterance.pitch = 1.15;    // Slightly higher for femininity
+    utterance.volume = 0.9;    // Slightly softer, like whispering
     
-    // Try to get a good English voice
+    // Find the best female English voice
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
-      v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Premium'))
-    ) || voices.find(v => v.lang.startsWith('en'));
     
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
+    // Priority list for premium female voices
+    const preferredVoiceNames = [
+      'Samantha',           // macOS - Natural, warm
+      'Karen',              // macOS Australian - Soft
+      'Moira',              // macOS Irish - Gentle
+      'Google UK English Female',
+      'Microsoft Zira',     // Windows - Pleasant
+      'Microsoft Hazel',    // Windows UK - Softer
+      'Google US English',  // Falls back to female
+      'Fiona',              // macOS Scottish
+      'Victoria',           // macOS
+    ];
+    
+    let selectedVoice = null;
+    
+    // Try to find a preferred voice
+    for (const name of preferredVoiceNames) {
+      selectedVoice = voices.find(v => 
+        v.name.includes(name) && v.lang.startsWith('en')
+      );
+      if (selectedVoice) break;
+    }
+    
+    // Fallback: find any English female voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => 
+        v.lang.startsWith('en') && 
+        (v.name.toLowerCase().includes('female') ||
+         v.name.includes('Samantha') ||
+         v.name.includes('Karen') ||
+         v.name.includes('Zira') ||
+         v.name.includes('Hazel'))
+      );
+    }
+    
+    // Final fallback: any English voice
+    if (!selectedVoice) {
+      selectedVoice = voices.find(v => v.lang.startsWith('en'));
+    }
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
     
     utterance.onstart = () => setIsSpeaking(true);

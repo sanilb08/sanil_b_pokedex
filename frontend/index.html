@@ -7,12 +7,12 @@
     <meta name="description" content="Discover hidden stories of iconic destinations with AI-powered audio tours" />
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f59e0b'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%23f59e0b' stroke-width='2' fill='none'/%3E%3Ccircle cx='12' cy='12' r='6' stroke='%23f59e0b' stroke-width='2' fill='none'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23f59e0b'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d97706' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23d97706'/%3E%3C/svg%3E" />
     
-    <!-- Fonts: Playfair Display (Display), Inter (Body), Caveat (Hand) -->
+    <!-- Fonts: DM Serif Display (Elegant Display), DM Sans (Clean Body), Cormorant Garamond (Refined Accent) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,35 +21,37 @@
         theme: {
           extend: {
             fontFamily: {
-              display: ['Playfair Display', 'serif'],
-              body: ['Inter', 'sans-serif'],
-              hand: ['Caveat', 'cursive'],
+              display: ['DM Serif Display', 'Georgia', 'serif'],
+              body: ['DM Sans', 'system-ui', 'sans-serif'],
+              accent: ['Cormorant Garamond', 'Georgia', 'serif'],
             },
             colors: {
-              stone: {
-                50: '#FAFAF9',
-                100: '#F5F5F4',
-                200: '#E7E5E4',
-                300: '#D6D3D1',
-                400: '#A8A29E',
-                500: '#78716C',
-                600: '#57534E',
-                700: '#44403C',
-                800: '#292524',
-                900: '#1C1917',
+              paper: {
+                50: '#FAFAF8',
+                100: '#F5F5F0',
+                200: '#E8E8E0',
               },
-              amber: {
+              ink: {
+                300: '#9CA3AF',
+                400: '#6B7280',
+                500: '#4B5563',
+                600: '#374151',
+                700: '#1F2937',
+                800: '#111827',
+              },
+              gold: {
                 50: '#FFFBEB',
                 100: '#FEF3C7',
                 200: '#FDE68A',
                 300: '#FCD34D',
                 400: '#FBBF24',
-                500: '#F59E0B',
-                600: '#D97706',
-                700: '#B45309',
-                800: '#92400E',
-                900: '#78350F',
+                500: '#D97706',
+                600: '#B45309',
+                700: '#92400E',
               },
+            },
+            letterSpacing: {
+              'ultra-wide': '0.2em',
             },
           },
         },
@@ -63,7 +65,8 @@
         -moz-osx-font-smoothing: grayscale;
       }
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        background: #FAFAF8;
       }
       .scrollbar-hide {
         -ms-overflow-style: none;
@@ -72,16 +75,15 @@
       .scrollbar-hide::-webkit-scrollbar {
         display: none;
       }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      .animate-fadeIn {
-        animation: fadeIn 0.3s ease-out;
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     </style>
   </head>
-  <body class="bg-stone-50 text-stone-800">
+  <body class="bg-paper-50 text-ink-700 antialiased">
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
