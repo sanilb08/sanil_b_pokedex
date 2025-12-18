@@ -3,7 +3,7 @@
 import { Tour, Location, ChatMessage } from '../types';
 
 const EMERGENT_KEY = import.meta.env.EMERGENT_LLM_KEY || process.env.EMERGENT_LLM_KEY;
-const BASE_URL = 'https://api.emergentai.io';
+const BASE_URL = 'https://integrations.emergentagent.com';
 
 const callOpenAI = async (messages: { role: string; content: string }[], maxTokens = 2000): Promise<string> => {
   const response = await fetch(`${BASE_URL}/v1/chat/completions`, {
