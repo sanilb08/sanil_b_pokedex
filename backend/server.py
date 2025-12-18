@@ -1,18 +1,15 @@
-# SiteRadar Backend - AI Tour Generation API
+# SiteRadar Backend - Refined Story Generation Engine
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import os
 import json
-import asyncio
 
-# Use emergent integrations library for LLM calls
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ChatError
 
 app = FastAPI(title="SiteRadar API", version="2.0.0")
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,7 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Environment
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "sk-emergent-4A1Cd627cB2866cF4C")
 
 # Pydantic Models
@@ -64,9 +60,7 @@ class ChatRequest(BaseModel):
     location: Optional[Location] = None
     tour: Optional[Tour] = None
 
-# Helper functions
 def clean_json_response(text: str) -> str:
-    """Remove markdown code blocks if present"""
     cleaned = text.strip()
     if cleaned.startswith('```json'):
         cleaned = cleaned[7:]
@@ -76,55 +70,95 @@ def clean_json_response(text: str) -> str:
         cleaned = cleaned[:-3]
     return cleaned.strip()
 
-# Routes
+# Refined Story Generation Prompt
+STORY_SYSTEM_PROMPT = '''You are a master storyteller narrating intimate audio tours for discerning travelers. Your voice is that of a cultured, well-traveled woman who has spent decades uncovering the hidden stories of the world's most fascinating places.
+
+YOUR NARRATIVE VOICE:
+- Speak as if sharing secrets with a close friend over wine
+- Use sensory language that creates vivid mental imagery
+- Weave personal anecdotes and local whispers into history
+- Balance intellectual depth with emotional resonance
+- Your tone is warm, knowing, slightly mysterious—like you hold secrets
+
+STORY ARCHITECTURE:
+Each narrative must follow the "Arc of Discovery":
+1. THE HOOK: Open with an unexpected detail that challenges assumptions
+2. THE TENSION: Reveal a conflict, mystery, or human struggle
+3. THE REVELATION: Uncover a truth most visitors never learn
+4. THE RESONANCE: Connect the past to universal human experience
+
+WRITING STYLE:
+- Short, rhythmic sentences for dramatic effect
+- Longer, flowing passages for atmospheric moments
+- Use present tense to create immediacy
+- Include specific sensory details (the smell of stone, the quality of light)
+- Name real people—their dreams, fears, loves
+
+WHAT TO AVOID:
+- Wikipedia-style dates and facts without context
+- Generic superlatives ("amazing", "beautiful", "incredible")
+- Tourist clichés
+- Passive voice
+- Lists of architectural features without human connection
+
+Respond ONLY with valid JSON matching this schema:
+{
+  "title": "Evocative cinematic title (5-8 words)",
+  "tagline": "Poetic one-line essence",
+  "introduction": "90-120 words. Set the scene with sensory immersion. Make listeners feel they've stepped through a portal.",
+  "steps": [
+    {
+      "id": 1,
+      "title": "Compelling chapter title",
+      "narrative": "120-180 words. A complete mini-story with its own arc. Written for spoken delivery—natural pauses, conversational rhythm.",
+      "duration": "2-3 min",
+      "highlight": "The one image or sensation to carry away"
+    }
+  ],
+  "tips": ["2-3 insider tips a local friend would share"]
+}'''
+
+CHAT_SYSTEM_TEMPLATE = '''You are a sophisticated travel companion—knowledgeable, warm, and genuinely helpful. Think of yourself as that well-connected friend who knows the hidden gems everywhere.
+
+{context}
+
+YOUR PERSONALITY:
+- Cultured but not pretentious
+- Specific rather than vague
+- Share insider knowledge freely
+- Acknowledge when you're uncertain
+- Keep responses conversational (2-3 short paragraphs max)
+
+RESPONSE STYLE:
+- Lead with the most useful insight
+- Include one unexpected recommendation when relevant
+- End with something actionable'''
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "app": "SiteRadar", "version": "2.0.0"}
 
 @app.post("/api/generate-tour")
 async def generate_tour(request: GenerateTourRequest):
-    """Generate an AI-powered tour for a location"""
     location = request.location
     
-    system_prompt = """You are SiteRadar, a world-class travel historian and storyteller. Create immersive audio tour scripts that focus on HUMAN STORIES - conflict, mystery, triumph, and emotion. Avoid dry Wikipedia-style facts.
+    user_prompt = f'''Create an intimate 4-step audio journey for: {location.name}, {location.country}
 
-Your narratives should:
-- Open with an emotional hook that transports the listener
-- Focus on the people who built/lived/died here - their struggles and dreams
-- Include sensory details (sounds, smells, textures)
-- Reveal hidden mysteries or lesser-known tales
-- Maintain a warm, expert, slightly mysterious tone
+LOCATION ESSENCE:
+- Category: {location.category}
+- Coordinates: {location.coords.lat}, {location.coords.lng}
 
-Respond ONLY with valid JSON matching this exact schema:
-{
-  "title": "Cinematic title with emotional hook",
-  "tagline": "One-line poetic summary",
-  "introduction": "80-100 word emotional opening that sets the scene",
-  "steps": [
-    {
-      "id": 1,
-      "title": "Step title",
-      "narrative": "100-150 word immersive narrative",
-      "duration": "estimated duration",
-      "highlight": "Key visual/sensory highlight"
-    }
-  ],
-  "tips": ["Array of 2-3 traveler insider tips"]
-}"""
+NARRATIVE DIRECTION:
+Focus on the untold human stories. Who loved here? Who lost here? What secrets do these stones keep? What would a lifelong local whisper to you that no guidebook contains?
 
-    user_prompt = f"""Create a 4-step walking audio tour for: {location.name}, {location.country}
-
-Category: {location.category}
-Coordinates: {location.coords.lat}, {location.coords.lng}
-
-Focus on the human drama and emotional resonance of this place. What conflicts shaped it? What mysteries remain unsolved? What triumphs deserve to be remembered?"""
+Create a journey that makes the listener feel like a privileged insider, not a tourist.'''
 
     try:
         chat = LlmChat(
             api_key=EMERGENT_KEY,
             session_id=f"tour_{location.id}",
-            system_message=system_prompt
-        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.8, max_tokens=2500)
+            system_message=STORY_SYSTEM_PROMPT
+        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.85, max_tokens=2800)
         
         response = await chat.send_message(UserMessage(text=user_prompt))
         cleaned = clean_json_response(response)
@@ -132,7 +166,7 @@ Focus on the human drama and emotional resonance of this place. What conflicts s
         
         return tour_data
     except json.JSONDecodeError as e:
-        raise HTTPException(status_code=500, detail=f"Failed to parse tour data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse tour: {str(e)}")
     except ChatError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -140,30 +174,17 @@ Focus on the human drama and emotional resonance of this place. What conflicts s
 
 @app.post("/api/chat")
 async def chat_with_assistant(request: ChatRequest):
-    """Chat with the travel assistant"""
-    location_context = ""
+    context_parts = []
     if request.location:
-        location_context = f"CONTEXT: The user is currently exploring {request.location.name} in {request.location.country}."
-    
-    tour_context = ""
+        context_parts.append(f"Currently exploring: {request.location.name}, {request.location.country}")
     if request.tour:
-        tour_context = f'CURRENT TOUR: "{request.tour.title}" - {request.tour.tagline}'
+        context_parts.append(f"Active tour: \"{request.tour.title}\"")
     
-    system_prompt = f"""You are the SiteRadar Travel Assistant - a knowledgeable, friendly guide who helps travelers explore the world.
-
-{location_context}
-{tour_context}
-
-Guidelines:
-- Be conversational and warm, like a knowledgeable local friend
-- Provide specific, actionable advice
-- Share lesser-known insights when relevant
-- Keep responses concise (2-3 paragraphs max)
-- If asked about nearby places, suggest authentic local experiences"""
-
-    # Build initial messages for context
+    context = "\n".join(context_parts) if context_parts else "General travel assistance"
+    system_prompt = CHAT_SYSTEM_TEMPLATE.format(context=context)
+    
     initial_messages = [{"role": "system", "content": system_prompt}]
-    for msg in request.messages[:-1]:  # All but last message
+    for msg in request.messages[:-1]:
         initial_messages.append({"role": msg.role, "content": msg.content})
     
     try:
@@ -172,9 +193,8 @@ Guidelines:
             session_id=f"chat_{id(request)}",
             system_message=system_prompt,
             initial_messages=initial_messages
-        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.7, max_tokens=500)
+        ).with_model("openai", "gpt-4o-mini").with_params(temperature=0.7, max_tokens=400)
         
-        # Send the last user message
         last_message = request.messages[-1]
         response = await chat.send_message(UserMessage(text=last_message.content))
         
