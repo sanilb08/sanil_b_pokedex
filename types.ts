@@ -1,51 +1,65 @@
-export interface Place {
+// SiteRadar - Type Definitions
+
+export interface Location {
+  id: string;
   name: string;
-  location: string;
+  region: string;
+  country: string;
+  coords: { lat: number; lng: number };
   image: string;
+  category: 'ancient' | 'nature' | 'urban' | 'sacred' | 'wonder';
 }
 
 export interface TourStep {
+  id: number;
   title: string;
-  script: string;
-  location_description: string;
+  narrative: string;
+  duration: string;
+  highlight: string;
 }
 
-export interface TourGuide {
+export interface Tour {
   title: string;
-  intro_script: string;
-  tour_steps: TourStep[];
+  tagline: string;
+  introduction: string;
+  steps: TourStep[];
+  tips: string[];
 }
 
 export interface ChatMessage {
-  sender: 'user' | 'bot';
-  text: string;
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
 }
 
-export interface GeolocationCoordinates {
-  latitude: number;
-  longitude: number;
-  accuracy: number;
-  altitude: number | null;
-  altitudeAccuracy: number | null;
-  heading: number | null;
-  speed: number | null;
+export interface PassportEntry {
+  location: Location;
+  visitedAt: number;
+  tourTitle: string;
 }
 
-export interface GroundingSource {
-    uri: string;
-    title: string;
+export interface AppState {
+  selectedLocation: Location | null;
+  currentTour: Tour | null;
+  isGenerating: boolean;
+  error: string | null;
+  passport: PassportEntry[];
+  chatMessages: ChatMessage[];
+  isChatOpen: boolean;
+  activeStep: number;
+  isSpeaking: boolean;
 }
 
-export interface City {
-  name: string;
-  places: Place[];
-}
-export interface Country {
-  name: string;
-  cities: City[];
-}
-export interface Continent {
-  name: string;
-  countries: Country[];
-}
-export type RegionalData = Continent[];
+export type AppAction =
+  | { type: 'SELECT_LOCATION'; payload: Location }
+  | { type: 'SET_TOUR'; payload: Tour }
+  | { type: 'SET_GENERATING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'ADD_TO_PASSPORT'; payload: PassportEntry }
+  | { type: 'REMOVE_FROM_PASSPORT'; payload: string }
+  | { type: 'ADD_MESSAGE'; payload: ChatMessage }
+  | { type: 'TOGGLE_CHAT' }
+  | { type: 'SET_ACTIVE_STEP'; payload: number }
+  | { type: 'SET_SPEAKING'; payload: boolean }
+  | { type: 'RESET_TOUR' };
