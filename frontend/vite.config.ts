@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     define: {
-      'import.meta.env.EMERGENT_LLM_KEY': JSON.stringify(env.EMERGENT_LLM_KEY),
-      'process.env.EMERGENT_LLM_KEY': JSON.stringify(env.EMERGENT_LLM_KEY),
+      'import.meta.env.REACT_APP_BACKEND_URL': JSON.stringify(env.REACT_APP_BACKEND_URL),
+      'process.env.REACT_APP_BACKEND_URL': JSON.stringify(env.REACT_APP_BACKEND_URL),
     },
     resolve: {
       alias: {
