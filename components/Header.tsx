@@ -1,31 +1,43 @@
+// SiteRadar - Header Component
 
 import React from 'react';
-import { CompassIcon, BookOpenIcon } from './icons';
+import { useApp } from '../context/AppContext';
+import { RadarIcon, PassportIcon } from './ui/Icons';
 
-interface HeaderProps {
-    onTogglePassport: () => void;
-}
+const Header: React.FC = () => {
+  const { state } = useApp();
 
-const Header: React.FC<HeaderProps> = ({ onTogglePassport }) => {
   return (
-    <header className="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          <div className="flex items-center">
-            <div className="bg-accent p-2 rounded-xl shadow-lg shadow-accent/20">
-              <CompassIcon className="h-6 w-6 text-white" />
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2 rounded-xl shadow-lg shadow-amber-500/20">
+              <RadarIcon className="w-5 h-5 text-white" />
             </div>
-            <div className="ml-4">
-              <h1 className="text-2xl font-display font-extrabold text-primary tracking-tight">NomadGuide</h1>
-              <p className="text-[10px] font-hand text-accent uppercase tracking-[0.2em] leading-none">Your AI Explorer</p>
+            <div>
+              <h1 className="text-xl font-display font-bold text-stone-900 tracking-tight">
+                SiteRadar
+              </h1>
+              <p className="text-[9px] font-hand text-amber-600 uppercase tracking-[0.15em] -mt-0.5">
+                AI Explorer
+              </p>
             </div>
           </div>
+
+          {/* Passport Badge */}
           <button
-            onClick={onTogglePassport}
-            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-primary bg-muted rounded-full hover:bg-gray-100 transition-all border border-gray-100"
+            data-testid="passport-toggle"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-stone-700 bg-stone-50 hover:bg-stone-100 rounded-full transition-colors border border-stone-200"
           >
-            <BookOpenIcon className="h-4 w-4" />
-            My Passport
+            <PassportIcon className="w-4 h-4" />
+            <span>Passport</span>
+            {state.passport.length > 0 && (
+              <span className="bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {state.passport.length}
+              </span>
+            )}
           </button>
         </div>
       </div>
